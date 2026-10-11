@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - LookStylo Clothing</title>
+    <style>
+        :root { --ink: #151515; --paper: #f7f5f1; --accent: #d97706; --line: #e5e1d9; }
+        * { box-sizing: border-box; }
+        body { margin: 0; min-height: 100vh; background: var(--paper); color: var(--ink); font-family: Arial, sans-serif; }
+        nav { border-bottom: 1px solid var(--line); background: rgba(247,245,241,.96); }
+        nav > div { width: min(1120px, 100%); min-height: 76px; margin: auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
+        nav img { width: 170px; height: 58px; object-fit: contain; }
+        nav a { color: var(--ink); font-size: 13px; font-weight: 700; text-decoration: none; text-transform: uppercase; letter-spacing: .12em; }
+        nav a:hover { color: var(--accent); }
+        main { width: min(560px, 100%); margin: 0 auto; padding: 72px 20px; }
+        .eyebrow { color: #b45309; font-size: 12px; font-weight: 700; letter-spacing: .25em; text-transform: uppercase; }
+        h1 { margin: 10px 0 28px; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(42px, 8vw, 64px); line-height: .95; }
+        form { border: 1px solid var(--line); border-radius: 4px; background: #fff; padding: 30px; box-shadow: 0 16px 40px rgba(21,21,21,.08); }
+        label { display: block; margin-bottom: 18px; color: #4b4b4b; font-size: 13px; font-weight: 700; }
+        input { width: 100%; margin-top: 8px; border: 1px solid #d6d1c8; border-radius: 3px; padding: 14px; color: var(--ink); font: inherit; }
+        input:focus { outline: 2px solid rgba(217,119,6,.35); border-color: var(--accent); }
+        button { width: 100%; border: 0; border-radius: 3px; padding: 14px; background: var(--ink); color: #fff; font-weight: 700; cursor: pointer; }
+        button:hover { background: var(--accent); }
+        button:disabled { opacity: .6; cursor: progress; }
+        .notice { margin-top: 18px; color: #666; font-size: 13px; line-height: 1.6; }
+        .notice a { color: #b45309; font-weight: 700; }
+        .notice.ok { color: #166534; }
+        .notice.err { color: #b91c1c; }
+        @media (max-width: 640px) { nav > div { min-height: 68px; padding: 0 16px; } nav img { width: 130px; height: 48px; } main { padding: 48px 16px; } form { padding: 22px; } }
+    </style>
+</head>
+<body>
+    <nav>
+        <div>
+            <a href="../index.html" aria-label="LookStylo Clothing home"><img src="../assets/images/slazzer-preview-x2n1h.png" alt="LookStylo Clothing logo"></a>
+            <a href="../index.html">Home</a>
+        </div>
+    </nav>
+    <main>
+        <p class="eyebrow">LookStylo Clothing</p>
+        <h1>Sign In</h1>
+        <form id="loginForm">
+            <label>Mobile number, Email or Admin username<input id="identifier" type="text" autocomplete="username" required></label>
+            <label>Password<input id="password" type="password" autocomplete="current-password" required></label>
+            <button id="submitBtn" type="submit">Sign In</button>
+            <p id="loginMessage" class="notice" role="status">Sign in with your mobile/email (customers) or your admin username. Customers create their password during checkout.</p>
+        </form>
+    </main>
+    <script>
+        var loginForm = document.getElementById('loginForm');
+        var submitBtn = document.getElementById('submitBtn');
+        var message = document.getElementById('loginMessage');
+
+        function setMessage(text, type) {
+            message.textContent = text;
+            message.className = 'notice' + (type ? ' ' + type : '');
+        }
+
+        loginForm.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            var identifier = document.getElementById('identifier').value.trim();
+            var password = document.getElementById('password').value;
+            if (!identifier || !password) {
+                setMessage('Enter your login and password.', 'err');
+                return;
+            }
+
+            if (window.location.protocol === 'file:') {
+                setMessage('Sign in works when the site is served by Live Server or Netlify, not when opened as a local file.', 'err');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            setMessage('Signing in…');
+            try {
+                var response = await fetch('/.netlify/functions/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier: identifier, password: password })
+                });
+                var data = await response.json().catch(function () { return {}; });
+
+                if (!data.success) {
+                    setMessage(data.message || 'Invalid credentials.', 'err');
+                    return;
+                }
+
+                if (data.role === 'admin') {
+                    localStorage.setItem('adminToken', data.token);
+                    localStorage.setItem('authRole', 'admin');
+                } else {
+                    localStorage.setItem('customerToken', data.token);
+                    localStorage.setItem('authRole', 'customer');
+                    localStorage.setItem('customerName', data.name || '');
+                }
+                setMessage('Welcome' + (data.name ? ', ' + data.name : '') + '! Redirecting…', 'ok');
+                window.location.href = data.redirect || (data.role === 'admin' ? '/pages/billing.html' : '/index.html');
+            } catch (error) {
+                setMessage('Could not reach the sign-in service. Please try again.', 'err');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

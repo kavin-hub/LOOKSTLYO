@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offers - LookStylo Clothing</title>
+
+    <script defer src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --ink: #171717;
+            --paper: #f5f1eb;
+            --card: #ffffff;
+            --muted: #666666;
+            --line: rgba(23,23,23,.1);
+            --gold: #d7a65f;
+            --gold-deep: #b7791d;
+            --accent: #5e2d91;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            background: linear-gradient(180deg, #f8f4ef 0%, #f3efe8 100%);
+            color: var(--ink);
+            font-family: Inter, "Segoe UI", sans-serif;
+        }
+        a { text-decoration: none; }
+        img { display: block; max-width: 100%; }
+
+        .brand-shell { display: flex; align-items: center; gap: .8rem; }
+        .brand-mark { width: 52px; height: 52px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,.08)); }
+        .brand-wordmark { display: inline-flex; flex-direction: column; line-height: 1; }
+        .brand-wordmark strong { font-family: Georgia, 'Times New Roman', serif; font-size: 1.1rem; letter-spacing: .16em; }
+        .brand-wordmark small { margin-top: .2rem; font-size: .52rem; letter-spacing: .48em; text-transform: uppercase; }
+        .collection-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: rgba(255,255,255,.96);
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            overflow: hidden;
+            box-shadow: 0 16px 30px rgba(17,17,17,.045);
+            transition: transform .25s ease, box-shadow .25s ease;
+        }
+        .collection-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 22px 45px rgba(17,17,17,.12);
+        }
+        .product-photo-frame {
+            display: block;
+            height: 280px;
+            flex: 0 0 280px;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(180deg, #f9f6f3 0%, #f1ece6 100%);
+            border: 1px solid rgba(23, 23, 23, 0.08);
+            border-radius: 20px 20px 0 0;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.6);
+        }
+        .product-photo-frame img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            padding: 12px;
+            background: linear-gradient(180deg, #ffffff 0%, #f7f3ee 100%);
+            transition: transform .45s ease, filter .3s ease;
+            filter: contrast(1.04) saturate(1.03);
+        }
+        .collection-card:hover .product-photo-frame img {
+            transform: scale(1.02);
+        }
+        .offer-badge {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            z-index: 5;
+            background: linear-gradient(135deg, #d9a856, #b7791d);
+            color: #151515;
+            font-size: .72rem;
+            font-weight: 800;
+            letter-spacing: .06em;
+            padding: 6px 11px;
+            border-radius: 999px;
+            box-shadow: 0 6px 14px rgba(183, 121, 29, .35);
+        }
+        .price-original {
+            color: var(--muted);
+            text-decoration: line-through;
+            font-size: .85rem;
+        }
+        .price-final {
+            color: #5e2d91;
+            font-weight: 800;
+            font-size: 1.25rem;
+        }
+        .price-save {
+            color: #15803d;
+            font-size: .72rem;
+            font-weight: 700;
+        }
+        .product-card-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1.2rem 1.15rem 1.25rem;
+            background: linear-gradient(180deg, #fff 0%, #fdfaf6 100%);
+        }
+        .product-card-content .add-to-cart-btn { margin-top: auto; }
+        .product-gallery-thumb {
+            cursor: pointer;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: border-color .2s ease, transform .2s ease;
+            background: white;
+            box-shadow: 0 1px 3px rgba(17,17,17,.06);
+        }
+        .product-gallery-thumb:hover { transform: translateY(-1px); }
+        .product-gallery-thumb.active { border-color: var(--gold-deep); }
+        .product-gallery-thumb img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #f5f1eb;
+        }
+        .product-card-content h3 {
+            letter-spacing: -.03em;
+            line-height: 1.35;
+        }
+        .size-select, .color-select {
+            border-color: rgba(23,23,23,.15);
+            border-radius: 10px;
+            background: #fff;
+            transition: border-color .2s ease, box-shadow .2s ease;
+        }
+        .size-select:focus, .color-select:focus {
+            outline: none;
+            border-color: rgba(183,121,29,.7);
+            box-shadow: 0 0 0 3px rgba(183,121,29,.12);
+        }
+        .add-to-cart-btn {
+            background: linear-gradient(135deg, var(--accent) 0%, #7241a8 100%);
+            border-radius: 12px;
+            box-shadow: 0 12px 24px rgba(94,45,145,.18);
+        }
+        .add-to-cart-btn:hover {
+            filter: brightness(1.03);
+        }
+        .arrival-modal-backdrop {
+            background: rgba(17, 17, 17, .72);
+            backdrop-filter: blur(8px);
+        }
+        .arrival-modal {
+            animation: arrival-modal-in .28s ease-out both;
+        }
+        .photo-lightbox {
+            background: rgba(17, 17, 17, .8);
+            backdrop-filter: blur(8px);
+        }
+        .photo-lightbox-panel {
+            animation: arrival-modal-in .24s ease-out both;
+        }
+        .photo-lightbox-image {
+            max-height: min(78vh, 720px);
+        }
+        .shop-nav-links { display: flex; }
+        .popup-panel-scroll { max-height: calc(100vh - 2rem); overflow-y: auto; }
+        @keyframes arrival-modal-in {
+            from { opacity: 0; transform: translateY(14px) scale(.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @media (max-width: 640px) {
+            .brand-shell { gap: .5rem; }
+            .brand-mark { width: 40px; height: 40px; }
+            .brand-wordmark strong { font-size: .9rem; letter-spacing: .12em; }
+            .brand-wordmark small { font-size: .43rem; letter-spacing: .34em; }
+            .shop-nav-links { gap: .55rem; font-size: .62rem; letter-spacing: .06em; }
+            .shop-nav-links > a { margin-left: 0 !important; }
+            .shop-nav-links > a:last-child { display: none; }
+            .product-photo-frame { height: 240px; flex-basis: 240px; }
+            .product-photo-frame img { padding: 10px; }
+            .arrival-modal { grid-template-columns: 1fr; max-height: calc(100vh - 2rem); overflow-y: auto; }
+            .arrival-modal > div:first-of-type { min-height: 210px; max-height: 34vh; padding: 1rem; }
+            .arrival-modal > div:first-of-type img { max-height: 30vh; }
+            .arrival-modal > div:last-child { padding: 1.5rem; }
+            .arrival-modal h2 { font-size: 2.25rem; }
+            .photo-lightbox-panel { max-height: calc(100vh - 2rem); overflow-y: auto; }
+            .photo-lightbox-image { max-height: 64vh; }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50 font-sans text-gray-900">
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 border-b border-black/10 bg-[#f8f4ef]/95 backdrop-blur-xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <div class="brand-shell">
+                    <img src="../assets/images/slazzer-preview-x2n1h.png" alt="Lookstylo Logo" class="brand-mark">
+                    <span class="brand-wordmark"><strong>LOOKSTYLO</strong><small>Clothing</small></span>
+                </div>
+                <div class="shop-nav-links items-center space-x-6 text-sm font-semibold uppercase tracking-[.12em] text-black/70">
+                    <a href="../index.html" class="transition hover:text-amber-700">Home</a>
+                    <a href="cart.html" class="transition hover:text-amber-700">Cart (<span id="cartCount">0</span>)</a>
+                    <a href="admin.html" class="rounded-full bg-[#151515] px-4 py-2 text-white transition hover:bg-amber-700">Admin</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Opening Soon Banner -->
+    <div id="openingBanner" class="bg-gradient-to-r from-[#1d1d1d] via-[#171717] to-[#2d1d0c] text-white px-4 py-4 shadow-lg">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            <div class="flex-1">
+                <h3 class="font-bold text-lg mb-1">Premium Sportswear & Everyday Fashion</h3>
+                <p class="text-sm text-white/80">Shop No. 2, Opposite Post Office, Pakkirithakka, Tirupathur Main Road, Jolarpattai – 635853</p>
+            </div>
+            <div class="flex gap-2">
+                <a href="https://www.google.com/maps/search/?api=1&query=Shop+No.+2,+Opposite+Post+Office,+Pakkirithakka,+Tirupathur+Main+Road,+Jolarpattai+635853" target="_blank" rel="noopener noreferrer" class="bg-white text-[#151515] font-bold px-4 py-2 rounded-full hover:bg-gray-100 transition text-sm">
+                    View on Map
+                </a>
+                <button onclick="closeBanner()" class="text-white hover:text-gray-200 text-xl font-bold">
+                    ✕
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Offers Section -->
+    <section id="offers" class="py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-10 text-center">
+                <p class="mb-3 text-xs font-bold uppercase tracking-[.32em] text-amber-700">LookStylo</p>
+                <h1 class="display text-5xl sm:text-6xl font-black tracking-tight">Special Offers</h1>
+            </div>
+            <div id="productsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Products will be loaded here by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <div id="footballArrivalPopup" class="arrival-modal-backdrop fixed inset-0 z-[100] hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="arrivalTitle">
+        <div class="arrival-modal relative grid w-full max-w-3xl overflow-hidden rounded-3xl bg-[#f8f4ef] shadow-2xl md:grid-cols-2">
+            <button id="closeArrivalPopup" type="button" class="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-xl text-white transition hover:bg-amber-700" aria-label="Close new arrival popup">&times;</button>
+            <div class="min-h-[300px] bg-white p-6 md:min-h-[410px] md:p-8">
+                <img src="../assets/images/IMG11.jpeg" alt="LookStylo Football Jersey" class="h-full w-full object-contain" onerror="this.src='../assets/images/IMG101.jpeg'">
+            </div>
+            <div class="flex flex-col justify-center p-7 sm:p-10">
+                <p class="mb-3 text-xs font-bold uppercase tracking-[.3em] text-amber-700">New arrival</p>
+                <h2 id="arrivalTitle" class="display text-4xl leading-tight sm:text-5xl">Football Jersey</h2>
+                <p class="mt-4 text-sm leading-6 text-black/60">Bring match-day energy to your everyday style with our new sports jersey.</p>
+                <p class="mt-6 text-2xl font-black text-[#5e2d91]">₹299</p>
+                <button id="shopFootballJersey" type="button" class="mt-7 inline-flex items-center justify-center rounded-xl bg-[#151515] px-5 py-3 text-sm font-bold uppercase tracking-wider text-white transition hover:bg-amber-700">Shop the jersey</button>
+                <button id="keepBrowsing" type="button" class="mt-3 text-xs font-bold uppercase tracking-wider text-black/50 transition hover:text-black">Keep browsing</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="photoLightbox" class="photo-lightbox fixed inset-0 z-[110] hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="photoLightboxTitle">
+        <div class="photo-lightbox-panel relative w-full max-w-4xl rounded-3xl bg-white p-3 shadow-2xl sm:p-5">
+            <button id="closePhotoLightbox" type="button" class="absolute right-5 top-5 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/75 text-xl text-white transition hover:bg-amber-700" aria-label="Close product photo">&times;</button>
+            <div class="flex min-h-[280px] items-center justify-center rounded-2xl bg-[#f5f1eb] p-4 sm:min-h-[520px] sm:p-8">
+                <img id="photoLightboxImage" src="" alt="" class="photo-lightbox-image h-auto w-auto max-w-full object-contain">
+            </div>
+            <h2 id="photoLightboxTitle" class="px-2 pb-1 pt-4 text-center text-lg font-bold text-[#171717]"></h2>
+        </div>
+    </div>
+
+    <div id="cartOptionsPopup" class="arrival-modal-backdrop fixed inset-0 z-[120] hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="cartOptionsTitle">
+        <div class="arrival-modal relative w-full max-w-md rounded-3xl bg-[#f8f4ef] p-7 shadow-2xl sm:p-9">
+            <button id="closeCartOptions" type="button" class="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-xl text-white transition hover:bg-amber-700" aria-label="Close size and color options">&times;</button>
+            <p class="mb-2 text-xs font-bold uppercase tracking-[.3em] text-amber-700">Choose options</p>
+            <h2 id="cartOptionsTitle" class="display pr-10 text-3xl leading-tight">Select your size and color</h2>
+            <p id="cartOptionsProduct" class="mt-3 text-sm text-black/60"></p>
+            <form id="cartOptionsForm" class="mt-6 space-y-4">
+                <div>
+                    <label for="cartSize" class="mb-1 block text-sm font-bold">Size</label>
+                    <input id="cartSize" type="text" class="size-select w-full border px-3 py-3 text-sm" placeholder="Type size (e.g. M, XL)" required>
+                </div>
+                <div>
+                    <label for="cartColor" class="mb-1 block text-sm font-bold">Color</label>
+                    <input id="cartColor" type="text" class="color-select w-full border px-3 py-3 text-sm" placeholder="Type color (e.g. Black)" required>
+                </div>
+                <button type="submit" class="add-to-cart-btn mt-2 w-full py-3 font-bold text-white">Add to Cart</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function closeBanner() {
+            document.getElementById('openingBanner').style.display = 'none';
+        }
+    </script>
+
+    <script>
+        async function fetchProducts(){
+            try{
+                const res = await fetch('/.netlify/functions/get-products');
+                const responseText = await res.text();
+                let data;
+                try { data = JSON.parse(responseText); } catch (error) { throw new Error(`Product service returned HTTP ${res.status} instead of JSON.`); }
+                if (!res.ok) throw new Error(data.message || `Product service returned HTTP ${res.status}`);
+                if (data.success) return data.products;
+            }catch(e){ console.error(e); }
+            return [
+                { id: 1, name: 'Premium Viscous Shirt', price: 599, discount_percent: 20, image: '../assets/images/IMG101.jpeg', description: 'Viscous fabric', sizes: 'M,L,XL', colors: 3 },
+                { id: 2, name: 'NS Shorts', price: 249, discount_percent: 0, image: '../assets/images/IMG111.jpeg', description: '3-Line Model | Premium Quality', sizes: 'M,L,XL', colors: 10, bulkPrice: 'Buy 5 @ ₹999' },
+                { id: 3, name: 'Football Jersey', price: 299, discount_percent: 15, image: '../assets/images/IMG11.jpeg', description: 'Sports-style football jersey', sizes: 'M,L,XL' },
+                { id: 4, name: 'NEW PREMIUM STREET BAGGY', price: 349, discount_percent: 10, image: '../assets/images/IMG112.jpeg', description: 'Side contrast panel baggy | Premium NS Lycra fabric', sizes: 'M,L,XL,2XL', colors: 8, style: 'Street Baggy', brand: 'ADIDAS' },
+                { id: 5, name: 'FLANNEL CHECK FRONT EMBROIDERY', price: 599, discount_percent: 25, image: '../assets/images/IMAGE112233.jpeg', description: 'Front embroidery | Twill fabric', sizes: 'M,L,XL' },
+                { id: 6, name: 'NEW STREETWEAR BAGGY OVERSIZED DROP SHOULDER SHIRT', price: 549, discount_percent: 30, image: '../assets/images/IMAGE112235.jpeg', images: ['../assets/images/IMAGE112235.jpeg', '../assets/images/IMAGE112236.jpeg', '../assets/images/IMAGE112237.jpeg', '../assets/images/IMAGE112239.jpeg', '../assets/images/IMAGE112240.jpeg', '../assets/images/IMAGE112241.jpeg', '../assets/images/IMAGE112242.jpeg'], description: 'Tie print with front and back print | Heavy GSM cotton fabric', sizes: 'M,L,XL', designs: 8 },
+                { id: 7, name: 'PREMIUM QUALITY POLO T-SHIRTS', price: 379, discount_percent: 0, image: '../assets/images/IMAGE112234.jpeg', description: 'Premium quality | Everyday polo fit', sizes: 'M,L,XL', bulkPrice: 'Buy 3 @ ₹999' }
+            ];
+        }
+
+        function formatPrice(n){ return '₹' + n; }
+
+        async function loadProducts(){
+            const allProducts = await fetchProducts();
+            const products = allProducts.filter(p => (parseFloat(p.discount_percent) || 0) > 0);
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = '';
+            products.forEach((product, productIndex) => {
+                const productCard = document.createElement('div');
+                productCard.className = 'collection-card bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition';
+const img = product.images && product.images.length ? product.images[0] : (product.image || '');
+            const mainImageId = `product-main-image-${productIndex}`;
+            const discount = parseFloat(product.discount_percent) || 0;
+            const finalPrice = discount > 0 ? Math.round(product.price * (1 - discount / 100) * 100) / 100 : product.price;
+            productCard.innerHTML = `
+                    <button type="button" class="product-photo-frame w-full cursor-zoom-in text-left" data-product-image="${img}" data-product-name="${product.name}" aria-label="View larger photo of ${product.name}">
+                        <img id="${mainImageId}" src="${img}" alt="${product.name}" onerror="this.src='../assets/images/IMG11.jpeg'">
+                        ${discount > 0 ? `<span class="offer-badge">-${discount}%</span>` : ''}
+                    </button>
+                    ${product.images && product.images.length > 1 ? `<div class="flex gap-1 overflow-x-auto bg-gray-50 p-2">${product.images.map((image, index) => `<button type="button" class="product-gallery-thumb ${index === 0 ? 'active' : ''}" data-main-image="${mainImageId}" data-image="${image}" aria-label="Show ${product.name} design ${index + 1}"><img src="${image}" alt="${product.name} design ${index + 1}" class="h-12 w-12 shrink-0 object-cover" onerror="this.parentElement.style.display='none'"></button>`).join('')}</div>` : ''}
+                    <div class="product-card-content p-4">
+                        <h3 class="font-bold text-lg mb-2"><a href="offers.html#offers" class="hover:underline">${product.name}</a></h3>
+                        <p class="text-gray-600 text-sm mb-4 ${product.description ? '' : 'invisible'}">${product.description || '&nbsp;'}</p>
+                        ${product.bulkPrice ? `<p class="text-green-700 text-sm font-bold mb-4">${product.bulkPrice}</p>` : ''}
+                        ${discount > 0
+                            ? `<p class="price-original mb-1">${formatPrice(product.price)}</p>
+                               <p class="price-final mb-4">${formatPrice(finalPrice)} <span class="price-save">${discount}% OFF</span></p>`
+                            : `<p class="text-purple-700 font-bold text-xl mb-4">${formatPrice(product.price)}</p>`}
+                        <button class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-2 rounded transition add-to-cart-btn" data-product-id="${product.id}" data-product-name="${product.name}" data-product-price="${finalPrice}" data-product-original-price="${product.price}" data-product-discount="${discount}">
+                            Add to Cart
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(productCard);
+            });
+
+            document.querySelectorAll('.product-card-content > .add-to-cart-btn').forEach(btn => btn.addEventListener('click', openCartOptions));
+            document.querySelectorAll('.product-gallery-thumb').forEach(thumb => thumb.addEventListener('click', () => {
+                const mainImage = document.getElementById(thumb.dataset.mainImage);
+                if (mainImage) mainImage.src = thumb.dataset.image;
+                thumb.parentElement.querySelectorAll('.product-gallery-thumb').forEach(item => item.classList.remove('active'));
+                thumb.classList.add('active');
+            }));
+            document.querySelectorAll('.product-photo-frame').forEach(photoButton => photoButton.addEventListener('click', () => {
+                openPhotoLightbox(photoButton.dataset.productImage, photoButton.dataset.productName);
+            }));
+            showFootballArrivalPopup();
+        }
+
+        function openPhotoLightbox(image, name) {
+            const lightbox = document.getElementById('photoLightbox');
+            document.getElementById('photoLightboxImage').src = image;
+            document.getElementById('photoLightboxImage').alt = name;
+            document.getElementById('photoLightboxTitle').textContent = name;
+            lightbox.classList.remove('hidden');
+            lightbox.classList.add('flex');
+        }
+
+        function closePhotoLightbox() {
+            const lightbox = document.getElementById('photoLightbox');
+            lightbox.classList.add('hidden');
+            lightbox.classList.remove('flex');
+        }
+
+        let selectedProduct = null;
+
+        function openCartOptions(event) {
+            const button = event.currentTarget;
+            selectedProduct = {
+                id: parseInt(button.dataset.productId),
+                name: button.dataset.productName,
+                price: parseFloat(button.dataset.productPrice),
+                originalPrice: parseFloat(button.dataset.productOriginalPrice || button.dataset.productPrice),
+                discount: parseFloat(button.dataset.productDiscount) || 0
+            };
+            document.getElementById('cartOptionsProduct').textContent = selectedProduct.name;
+            document.getElementById('cartSize').value = '';
+            document.getElementById('cartColor').value = '';
+            const popup = document.getElementById('cartOptionsPopup');
+            popup.classList.remove('hidden');
+            popup.classList.add('flex');
+            document.getElementById('cartSize').focus();
+        }
+
+        function closeCartOptions() {
+            const popup = document.getElementById('cartOptionsPopup');
+            popup.classList.add('hidden');
+            popup.classList.remove('flex');
+            selectedProduct = null;
+        }
+
+        function submitCartOptions(event) {
+            event.preventDefault();
+            if (!selectedProduct) return;
+            const size = document.getElementById('cartSize').value.trim();
+            const color = document.getElementById('cartColor').value.trim();
+            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const existing = cart.find(item => item.id === selectedProduct.id && item.size === size && item.color === color);
+            if (existing) existing.quantity += 1;
+            else cart.push({ ...selectedProduct, size, color, quantity: 1 });
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            closeCartOptions();
+        }
+
+        function closeFootballArrivalPopup() {
+            const popup = document.getElementById('footballArrivalPopup');
+            popup.classList.add('hidden');
+            popup.classList.remove('flex');
+            sessionStorage.setItem('lookstyloFootballArrivalSeen', 'true');
+        }
+
+        function showFootballArrivalPopup() {
+            if (sessionStorage.getItem('lookstyloFootballArrivalSeen') === 'true') return;
+            const popup = document.getElementById('footballArrivalPopup');
+            popup.classList.remove('hidden');
+            popup.classList.add('flex');
+        }
+
+        document.getElementById('closeArrivalPopup').addEventListener('click', closeFootballArrivalPopup);
+        document.getElementById('keepBrowsing').addEventListener('click', closeFootballArrivalPopup);
+        document.getElementById('shopFootballJersey').addEventListener('click', () => {
+            closeFootballArrivalPopup();
+            const jerseyCard = [...document.querySelectorAll('.collection-card')].find(card => card.textContent.includes('Football Jersey'));
+            if (jerseyCard) jerseyCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        document.getElementById('footballArrivalPopup').addEventListener('click', (event) => {
+            if (event.target.id === 'footballArrivalPopup') closeFootballArrivalPopup();
+        });
+        document.getElementById('closePhotoLightbox').addEventListener('click', closePhotoLightbox);
+        document.getElementById('photoLightbox').addEventListener('click', (event) => {
+            if (event.target.id === 'photoLightbox') closePhotoLightbox();
+        });
+        document.getElementById('closeCartOptions').addEventListener('click', closeCartOptions);
+        document.getElementById('cartOptionsForm').addEventListener('submit', submitCartOptions);
+        document.getElementById('cartOptionsPopup').addEventListener('click', (event) => {
+            if (event.target.id === 'cartOptionsPopup') closeCartOptions();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closePhotoLightbox();
+                closeFootballArrivalPopup();
+                closeCartOptions();
+            }
+        });
+
+        function addToCart(e){
+            const btn = e.target;
+            const productId = parseInt(btn.dataset.productId);
+            const productName = btn.dataset.productName;
+            const productPrice = parseFloat(btn.dataset.productPrice);
+            const productOriginalPrice = parseFloat(btn.dataset.productOriginalPrice || btn.dataset.productPrice);
+            const productDiscount = parseFloat(btn.dataset.productDiscount) || 0;
+            const card = btn.closest('.bg-white');
+            const size = card.querySelector('.size-select').value;
+            const color = card.querySelector('.color-select').value;
+            if (!size.trim() || !color.trim()) {
+                alert('Please type a size and color before adding this product.');
+                return;
+            }
+            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const existing = cart.find(item => item.id === productId && item.size === size && item.color === color);
+            if (existing) existing.quantity += 1; else cart.push({ id: productId, name: productName, price: productPrice, originalPrice: productOriginalPrice, discount: productDiscount, size, color, quantity: 1 });
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            btn.textContent = '✓ Added to Cart'; btn.disabled = true;
+            setTimeout(()=>{ btn.textContent = 'Add to Cart'; btn.disabled = false; }, 1400);
+        }
+
+        function updateCartCount(){ const cart = JSON.parse(localStorage.getItem('cart') || '[]'); const c = cart.reduce((s,i)=> s + i.quantity,0); document.getElementById('cartCount').textContent = c; }
+
+        loadProducts(); updateCartCount(); setInterval(updateCartCount, 1000);
+    </script>
+</body>
+</html>
